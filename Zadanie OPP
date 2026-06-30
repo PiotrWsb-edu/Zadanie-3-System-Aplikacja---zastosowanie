@@ -1,0 +1,207 @@
+from abc import ABC, abstractmethod
+from datetime import datetime
+
+class ElectricVehicle(ABC):
+    @abstractmethod
+    def charge(self):
+        pass
+
+class Vehicle(ABC):
+    def __init__(self, vehicle_id: str, brand: str, model: str, rental_rate: float):
+        self._id = vehicle_id
+        self._brand = brand
+        self._model = model
+        self._rental_rate = rental_rate
+        self._is_available = True
+
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @property
+    def brand(self) -> str:
+        return self._brand
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @property
+    def rental_rate(self) -> float:
+        return self._rental_rate
+
+    @property
+    def is_available(self) -> bool:
+        return self._is_available
+
+    def rent(self) -> bool:
+        if self._is_available:
+            self._is_available = False
+            return True
+        return False
+
+    def return_vehicle(self):
+        self._is_available = True
+
+    @abstractmethod
+    def vehicle_type(self) -> str:
+        pass
+
+class Car(Vehicle):
+    def __init__(self, vehicle_id: str, brand: str, model: str, rental_rate: float, fuel_type: str):
+        super().__init__(vehicle_id, brand, model, rental_rate)
+        self._fuel_type = fuel_type
+
+    def vehicle_type(self) -> str:
+        status = "Dostępny" if self.is_available else "Wypożyczony"
+        return f"[Samochód] ID: {self.id} | {self.brand} {self.model} ({self._fuel_type}) - {self.rental_rate}zł/doba | Status: {status}"
+
+
+class Bike(Vehicle):
+    def __init__(self, vehicle_id: str, brand: str, model: str, rental_rate: float, frame_size: int):
+        super().__init__(vehicle_id, brand, model, rental_rate)
+        self._frame_size = frame_size
+
+    def vehicle_type(self) -> str:
+        status = "Dostępny" if self.is_available else "Wypożyczony"
+        return f"[Rower] ID: {self.id} | {self.brand} {self.model} (Rama: {self._frame_size}\") - {self.rental_rate}zł/doba | Status: {status}"
+
+
+class Scooter(Vehicle, ElectricVehicle):
+    def __init__(self, vehicle_id: str, brand: str, model: str, rental_rate: float):
+        super().__init__(vehicle_id, brand, model, rental_rate)
+        self._battery_level = 100
+
+    def vehicle_type(self) -> str:
+        status = "Dostępny" if self.is_available else "Wypożyczony"
+        return f"[Skuter/Hulajnoga] ID: {self.id} | {self.brand} {self.model} (Bateria: {self._battery_level}%) - {self.rental_rate}zł/doba | Status: {status}"
+
+    def charge(self):
+        self._battery_level = 100
+        print(f"-> [Ładowanie] Pojazd {self.id} został w pełni naładowany.")
+
+    def use_battery(self, amount: int):
+        self._battery_level = max(0, self._battery_level - amount)
+
+class Rental:
+    def __init__(self, rental_id: str, user_id: str, vehicle: Vehicle):
+        self._rental_id = rental_id
+        self._user_id = user_id           
+        self._vehicle = vehicle           
+        self._rent_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    @property
+    def vehicle(self) -> Vehicle:
+        return self._vehicle
+
+
+class User:
+    def __init__(self, user_id: str, name: str):
+        self._user_id = user_id          
+        self._name = name
+        self._rental_history = []     
+
+    @property
+    def user_id(self) -> str:
+        return self._user_id
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def add_rental_to_history(self, rental: Rental):
+        self._rental_history.append(rental)
+
+    def view_history(self):
+        print(f"\nHistoria transakcji użytkownika {self._name}:")
+        if not self._rental_history:
+            print("  Brak wpisów w historii.")
+        for r in self._rental_history:
+            print(f"  - {r.vehicle.vehicle_type()}")
+
+class RentalManager:
+    def __init__(self):
+        self._fleet = {}         # Kolekcja ID -> Vehicle
+        self._users = {}         # Kolekcja ID -> User
+        self._rental_counter = 0
+
+    def add_vehicle(self, vehicle: Vehicle):
+        self._fleet[vehicle.id] = vehicle
+
+    def add_user(self, user: User):
+        self._users[user.user_id] = user
+
+    def rent_vehicle_to_user(self, user_id: str, vehicle_id: str):
+        print(f"\n[MANAGER] Próba wypożyczenia pojazdu {vehicle_id} dla użytkownika {user_id}...")
+        user = self._users.get(user_id)
+        vehicle = self._fleet.get(vehicle_id)
+
+        if not user or not vehicle:
+            print("Błąd: Niepoprawne ID użytkownika lub pojazdu!")
+            return
+
+        if not vehicle.is_available:
+            print(f"Błąd: Pojazd {vehicle_id} jest obecnie niedostępny!")
+            return
+
+        if vehicle.rent():
+            self._rental_counter += 1
+            r_id = f"RNT-{self._rental_counter:03d}"
+            new_rental = Rental(r_id, user_id, vehicle)
+            user.add_rental_to_history(new_rental)
+            print(f"Sukces: Pojazd wypożyczony pomyślnie. Umowa: {r_id}")
+
+    def return_vehicle_from_user(self, vehicle_id: str):
+        print(f"\n[MANAGER] Rejestracja zwrotu pojazdu {vehicle_id}...")
+        vehicle = self._fleet.get(vehicle_id)
+        if vehicle:
+            vehicle.return_vehicle()
+            print(f"Sukces: Pojazd {vehicle_id} powrócił do floty i jest dostępny.")
+        else:
+            print("Błąd: Nie znaleziono pojazdu o podanym ID.")
+
+    def show_fleet(self):
+        print("\n--- AKTUALNY STAN FLOTY WYPOŻYCZALNI ---")
+        for vehicle in self._fleet.values():
+            print(vehicle.vehicle_type())
+        print("-----------------------------------------")
+
+# TESTOWE URUCHOMIENIE APLIKACJI
+
+if __name__ == "__main__":
+    manager = RentalManager()
+
+    car = Car("V-01", "Toyota", "Corolla", 140.0, "Hybryda")
+    bike = Bike("V-02", "Trek", "Marlin", 35.0, 21)
+    scooter = Scooter("V-03", "Xiaomi", "Pro 2", 50.0)
+
+    manager.add_vehicle(car)
+    manager.add_vehicle(bike)
+    manager.add_vehicle(scooter)
+
+    # Rejestracja klienta
+    u1 = User("USR-99", "Kamil Nowak")
+    manager.add_user(u1)
+
+    # Prezentacja początkowej floty
+    manager.show_fleet()
+
+    # Wypożyczenie pojazdu
+    manager.rent_vehicle_to_user("USR-99", "V-01")  
+    manager.rent_vehicle_to_user("USR-99", "V-01")  # Próba ponowna 
+
+    # Użycie hulajnogi i symulacja rozładowania baterii
+    manager.rent_vehicle_to_user("USR-99", "V-03")
+    scooter.use_battery(60)
+
+    # Prezentacja floty w trakcie wypożyczeń
+    manager.show_fleet()
+
+    # Zwrot pojazdu
+    manager.return_vehicle_from_user("V-01")
+
+    # Obsługa ładowania pojazu elektrycznego 
+    scooter.charge()
+
+    # Wyświetlenie historii operacji klienta
+    u1.view_history()
