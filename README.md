@@ -33,9 +33,9 @@ Klasy Car, Bike , Scooter dziedziczą po klasie Vehicle. Dziedziczenie
 Klasa Scooter dziedziczy po klasie ElectricVehicle, relacja ta wymusza, aby Hulajnoga/Skuter posiadała i realizowała metodę charge()
 Klasy Vehicle, User są powiązane z klasą RentalManager. Lista, kolekcja
 
-Enkapsulacja - Pola takie jak _is_available czy _battery_level zostały ukryte za pomocą konwencji pojedynczego podkreślenia. Dostęp do nich z zewnątrz realizowany jest przez bezpieczne właściwości (gettery @property), a ich modyfikacja odbywa się wyłącznie przez metody biznesowe (rent(), charge()), które pilnują poprawności stanów.
-Dziedziczenie - Widoczne w hierarchii pojazdów: Vehicle (klasa ogólna) Car, Bike, Scooter (klasy przejmujące wspólne cechy).
-Polimorfizm - Metoda vehicle_type() zaimplementowana w klasie bazowej jako abstrakcyjna, została nadpisana w każdej klasie szczegółowej. Wywołanie jej w pętli menedżera wyświetla specyficzny format danych dla każdego pojazdu, mimo operowania na ogólnym typie Vehicle.
-Abstrakcja - Klasy Vehicle oraz ElectricVehicle wykorzystują moduł abc.ABC i metody oznaczone @abstractmethod. Blokuje to możliwość stworzenia surowego obiektu tych klas i definiuje ścisły kontrakt dla klas pochodnych.
+- Enkapsulacja - Pola takie jak _is_available czy _battery_level zostały ukryte za pomocą konwencji pojedynczego podkreślenia. Dostęp do nich z zewnątrz realizowany jest przez bezpieczne właściwości (gettery @property), a ich modyfikacja odbywa się wyłącznie przez metody biznesowe (rent(), charge()), które pilnują poprawności stanów.
+- Dziedziczenie - Widoczne w hierarchii pojazdów: Vehicle (klasa ogólna) Car, Bike, Scooter (klasy przejmujące wspólne cechy).
+- Polimorfizm - Metoda vehicle_type() zaimplementowana w klasie bazowej jako abstrakcyjna, została nadpisana w każdej klasie szczegółowej. Wywołanie jej w pętli menedżera wyświetla specyficzny format danych dla każdego pojazdu, mimo operowania na ogólnym typie Vehicle.
+- Abstrakcja - Klasy Vehicle oraz ElectricVehicle wykorzystują moduł abc.ABC i metody oznaczone @abstractmethod. Blokuje to możliwość stworzenia surowego obiektu tych klas i definiuje ścisły kontrakt dla klas pochodnych.
 
 AI było użyte w celu porządkowania relacji i wyjaśnienia błędów i ich poprawienie 
